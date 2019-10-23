@@ -6,7 +6,7 @@ data-analitics='{"price":"[[if? &is=`[+old_price+]:!empty`
 							&tplBaseRow=`|#value#|` 
 							&tplRow=``
 							&ContentId=`[+id+]`
-						]]","name":"[[YAMS? &get=`data` &docid=`[+id+]` &from=`pagetitle`]]","url":"[~[+id+]~]","id":"[[DocInfo? &docid=`[+id+]` &field=`articul`]]","category":"Шубы","brand":"норка","variant":"[[DocInfo? &docid=`[+id+]` &field=`prod-colors`]]"}'
+						]]","name":"[[YAMS? &get=`data` &docid=`[+id+]` &from=`pagetitle`]]","url":"[~[+id+]~]","id":"[[DocInfo? &docid=`[+id+]` &field=`articul`]]"}'
 
 
 <div class="div--for-analitycs_short" style="display:none!important">[+params+]</div>
