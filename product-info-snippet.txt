@@ -1,0 +1,12 @@
+data-analitics='{"price":"[[if? &is=`[+old_price+]:!empty` 
+							&then=`[+old_price+]`
+						]][[viewPricesCurrency?
+							&noCheckAuth=`1`
+							&tplNullBasePrice=``	 
+							&tplBaseRow=`|#value#|` 
+							&tplRow=``
+							&ContentId=`[+id+]`
+						]]","name":"[[YAMS? &get=`data` &docid=`[+id+]` &from=`pagetitle`]]","url":"[~[+id+]~]","id":"[[DocInfo? &docid=`[+id+]` &field=`articul`]]","category":"Шубы","brand":"норка","variant":"[[DocInfo? &docid=`[+id+]` &field=`prod-colors`]]"}'
+
+
+<div class="div--for-analitycs_short" style="display:none!important">[+params+]</div>
