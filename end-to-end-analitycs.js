@@ -82,19 +82,19 @@ var colors_dict = [{"name":"черный","hex":"#000000","id":"18"},{"name":"с
             var bottomFlag = bottom >=0 && bottom <= iH;
             if (!(topFlag && bottomFlag)) return;       // If there is element doesn't shown enough
             if (collection.some(function (i) {
-                var iData;
-                var itemData;
-                try {
-                    if (!'analitics' in i.dataset) return true;
-                    if (!'analitics' in item.dataset) return true;
-                    iData = JSON.parse(i.dataset['analitics']);
-                    itemData = JSON.parse(item.dataset['analitics']);
-                } catch (e) {
-                    console.error(e.message);
-                    return true;
-                };
-                return iData['id'] == itemData['id'];
-            })) return;      // If item was not shown before
+                    var iData;
+                    var itemData;
+                    try {
+                        if (!'analitics' in i.dataset) return true;
+                        if (!'analitics' in item.dataset) return true;
+                        iData = JSON.parse(i.dataset['analitics']);
+                        itemData = JSON.parse(item.dataset['analitics']);
+                    } catch (e) {
+                        console.error(e.message);
+                        return true;
+                    };
+                    return iData['id'] == itemData['id'];
+                })) return;      // If item was not shown before
 
 
             collection.push(item);
@@ -327,12 +327,85 @@ function event3Handler(productObj) {
     if (isEmpty(productObj)) return;
     var objToProvide = getProcessedObj(productObj);
     var data = {
-            'ecommerce': {
-                'detail': {
-                    'actionField': {'list': 'Страница товара'},    // 'detail' actions have an optional list property.
-                    'products': [objToProvide]
-                }
+        'ecommerce': {
+            'detail': {
+                'actionField': {'list': 'Страница товара'},    // 'detail' actions have an optional list property.
+                'products': [objToProvide]
             }
-        };
+        }
+    };
     dataLayer.push(data);
+}
+function event4Handler(data) {
+    var dataToPush = {
+        'event': 'addToCart',
+        'ecommerce': {
+            'currencyCode': 'UAH',
+            'add': {
+                'products': [data]
+            }
+        }
+    };
+    dataLayer.push(dataToPush);
+}
+function getDataFromCartForEvent4Handler(obj, category_ID, brand_ID, variant_ID) {
+    var category = getExtraValueFromData(document.querySelector('.param_inside_row_' + category_ID), '.param_inside_value');
+    var brand = getExtraValueFromData(document.querySelector('.param_inside_row_' + brand_ID), '.param_inside_value');
+    var variant = getExtraValueFromData(document.querySelector('.param_inside_row_' + variant_ID), '.param_inside_value');
+    var result = {};
+    if ('pop_title_prod' in obj) {
+        result['name'] = obj['pop_title_prod'];
+    };
+    if ('pop_articul' in obj) {
+        result['id'] = obj['pop_articul'];
+    };
+    if ('pop_price' in obj) {
+        result['price'] = obj['pop_price'].replace(/\s/, '');
+        if (isNaN(result['price']) || Number(result['price']) == 0) {
+            result['price'] = 'not provided';
+        }
+    };
+    if ('pop_total_items' in obj) {
+        result['quantity'] = obj['pop_total_items'] + '';
+    };
+    if (category) {
+        result['category'] = category;
+    };
+    if (brand) {
+        result['brand'] = brand;
+    };
+    if (variant) {
+        result['variant'] = variant;
+    };
+
+    return result;
+}
+function event62Handler(data) {
+    var step = arguments[1] ? arguments[1] : 2;
+    var processedData = Array.isArray(data) ? data : [data];
+    var dataToPush = {
+        'event': 'checkout',
+        'ecommerce': {
+            'checkout': {
+                'actionField': {'step': step },
+                'products': processedData
+            }
+        },
+        'eventCallback': function() {
+            document.location = window.location.origin + '/ru/cart';
+        }
+    };
+    dataLayer.push(dataToPush);
+}
+function getDataForBuyInOneClick(amount) {
+    var moreButtonSelector = '.show-more-params';
+    var productSelector = 'section.prod-page--analytics';
+    var eventData = getDataFromProductShortCard(document.querySelector(moreButtonSelector), productSelector, '.rows-params');
+    delete eventData['position'];
+    delete eventData['url'];
+
+    var result = getProcessedObj(eventData);
+    result['quantity'] = amount + '';
+
+    return result;
 }
