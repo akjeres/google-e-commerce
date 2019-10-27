@@ -168,7 +168,6 @@ var colors_dict = [{"name":"черный","hex":"#000000","id":"18"},{"name":"с
         if (!(document.querySelectorAll(moreButtonSelector) && document.querySelectorAll(moreButtonSelector).length == 1)) return;
         var moreButton = document.querySelector(moreButtonSelector);
 
-        console.log('event 3');
         var parent = moreButton.closest(productSelector);
         if (!parent) return;
         var event3Data = getDataFromProductShortCard(moreButton, productSelector, '.rows-params');
@@ -291,7 +290,7 @@ function getProcessedObj(obj) {
         }
     }
 
-    if (result['price'] == '') {
+    if (isNaN(result['price']) || Number((result['price'] + '').replace(/\s/, '')) == 0) {
         result['price'] = 'not provided';
     }
 
