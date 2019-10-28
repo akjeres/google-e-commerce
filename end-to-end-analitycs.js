@@ -205,6 +205,23 @@ var colors_dict = [{"name":"черный","hex":"#000000","id":"18"},{"name":"с
         };
     });
 })();
+(function(){
+    // Event #6.2: 'Order a Purchese' Button click
+    window.addEventListener('load', function(event) {
+        var orderPathname = '/ru/oformlenie-zakaza';
+        var productSelector = '.cart-order_row';
+        var rE = new RegExp(orderPathname, 'i');
+
+        if (!rE.test(this.location.pathname)) return; // Event is emitted if location.pathname matches orderPathname
+
+        var dataToSend = [];
+
+        Array.prototype.forEach.call(document.querySelectorAll(productSelector), function(i) { // Create an array with data from each unit of a product
+            dataToSend.push(getDataForEvent5Handler(i));
+        });
+        event62Handler(dataToSend, '1', orderPathname);
+    });
+})();
 function hexToRgb(hex) {
     // Expand shorthand form (e.g. "03F") to full form (e.g. "0033FF")
     var shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
