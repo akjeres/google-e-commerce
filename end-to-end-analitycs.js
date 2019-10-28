@@ -206,7 +206,7 @@ var colors_dict = [{"name":"черный","hex":"#000000","id":"18"},{"name":"с
     });
 })();
 (function(){
-    // Event #6.2: 'Order a Purchese' Button click
+    // Event #6.2: 'Order a Purchase' Button click
     window.addEventListener('load', function(event) {
         var orderPathname = '/ru/oformlenie-zakaza';
         var productSelector = '.cart-order_row';
@@ -489,6 +489,19 @@ function event62Handler(data) {
         }
     };
     dataLayer.push(dataToPush);
+}
+// Event #6.3: 'Confirm a Purchase' Button click Handler
+function getDataToConfirmAPurchase(form) {
+    var orderPathname = '/ru/oformlenie-zakaza';
+    var productSelector = '.cart-order_row1';
+    var dataToSend = [];
+    var productsCollection = form.querySelectorAll(productSelector);
+
+    if (!(productsCollection && productsCollection.length)) return;
+    Array.prototype.forEach.call(productsCollection, function(i) { // Create an array with data from each unit of a product
+        dataToSend.push(getDataForEvent5Handler(i));
+    });
+    event62Handler(dataToSend, '2', orderPathname);
 }
 function getDataForBuyInOneClick(amount) {
     var moreButtonSelector = '.show-more-params';
