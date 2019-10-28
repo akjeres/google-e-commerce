@@ -163,6 +163,7 @@ var colors_dict = [{"name":"черный","hex":"#000000","id":"18"},{"name":"с
     // Event #3: Product Details view
     var moreButtonSelector = '.show-more-params';
     var productSelector = 'section.prod-page--analytics';
+    var orderButtonSelector = 'input.cart-pop-tocart_btn';
 
     window.addEventListener('load', function(event) {
         if (!(document.querySelectorAll(moreButtonSelector) && document.querySelectorAll(moreButtonSelector).length == 1)) return;
@@ -179,6 +180,17 @@ var colors_dict = [{"name":"черный","hex":"#000000","id":"18"},{"name":"с
             if (!(moreClickCounter % 2)) event3Handler(getProcessedObj(event3Data));
             moreClickCounter++;
         })
+
+
+        // Event #6.1: Redirect to Cart
+        if (!(document.querySelectorAll(orderButtonSelector) && document.querySelectorAll(orderButtonSelector).length == 1)) return;
+        var placeOrderButton = document.querySelector(orderButtonSelector);
+        var amountInput = document.getElementById('oc_count');
+
+        placeOrderButton.addEventListener('click', function(e) {
+            var amount = (amountInput) ? amountInput['value'] + '' : '1';
+            event62Handler(getDataForBuyInOneClick(amount), 'Redirect to Cart');
+        });
     });
     // Product Details view end
 })();
@@ -382,6 +394,7 @@ function getDataFromCartForEvent4Handler(obj, category_ID, brand_ID, variant_ID)
 }
 function event62Handler(data) {
     var step = arguments[1] ? arguments[1] : 2;
+    var destination = arguments[2] ? arguments[2] : '/ru/cart';
     var processedData = Array.isArray(data) ? data : [data];
     var dataToPush = {
         'event': 'checkout',
@@ -392,13 +405,16 @@ function event62Handler(data) {
             }
         },
         'eventCallback': function() {
-            document.location = window.location.origin + '/ru/cart';
+            document.location = window.location.origin + destination;
         }
     };
     dataLayer.push(dataToPush);
 }
 function getDataForBuyInOneClick(amount) {
     var moreButtonSelector = '.show-more-params';
+    if (!document.querySelector(moreButtonSelector)) {
+        moreButtonSelector = '.prod-page-params_outer'
+    }
     var productSelector = 'section.prod-page--analytics';
     var eventData = getDataFromProductShortCard(document.querySelector(moreButtonSelector), productSelector, '.rows-params');
     delete eventData['position'];
