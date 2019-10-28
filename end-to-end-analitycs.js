@@ -194,6 +194,20 @@ var colors_dict = [{"name":"черный","hex":"#000000","id":"18"},{"name":"с
     });
     // Product Details view end
 })();
+(function() {
+    // Event #5: Remove a Product from Cart
+    document.addEventListener('click', function (event) {
+        var target = event.target.closest('.shk-del');
+        if ( !target ) return;
+
+        console.log(target);
+    });
+    window.onbeforeunload = function(e) {
+        var dialogText = 'Dialog text here';
+        e.returnValue = dialogText;
+        return dialogText;
+    };
+})();
 function hexToRgb(hex) {
     // Expand shorthand form (e.g. "03F") to full form (e.g. "0033FF")
     var shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
@@ -349,6 +363,7 @@ function event3Handler(productObj) {
     dataLayer.push(data);
 }
 function event4Handler(data) {
+    if (isEmpty(data)) return;
     var dataToPush = {
         'event': 'addToCart',
         'ecommerce': {
@@ -392,10 +407,28 @@ function getDataFromCartForEvent4Handler(obj, category_ID, brand_ID, variant_ID)
 
     return result;
 }
+function event5Handler(data) {
+    if (isEmpty(data)) return;
+    dataLayer.push({
+        'event': 'removeFromCart',
+        'ecommerce': {
+            'remove': {
+                'products': [data]
+            }
+        }
+    });
+}
 function event62Handler(data) {
     var step = arguments[1] ? arguments[1] : 2;
     var destination = arguments[2] ? arguments[2] : '/ru/cart';
-    var processedData = Array.isArray(data) ? data : [data];
+    var processedData;
+    if (Array.isArray(data)) {
+        processedData = data;
+        if (!data.length) return;
+    } else {
+        processedData = [data];
+        if (isEmpty(data)) return;
+    }
     var dataToPush = {
         'event': 'checkout',
         'ecommerce': {
@@ -421,7 +454,9 @@ function getDataForBuyInOneClick(amount) {
     delete eventData['url'];
 
     var result = getProcessedObj(eventData);
-    result['quantity'] = amount + '';
+    if (amount) {
+        result['quantity'] = amount + '';
+    }
 
     return result;
 }
