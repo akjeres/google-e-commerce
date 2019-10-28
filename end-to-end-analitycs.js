@@ -200,13 +200,10 @@ var colors_dict = [{"name":"черный","hex":"#000000","id":"18"},{"name":"с
         var target = event.target.closest('.shk-del');
         if ( !target ) return;
 
-        console.log(target);
+        window.onbeforeunload = function(e) {
+            event5Handler(getDataForEvent5Handler(target));
+        };
     });
-    window.onbeforeunload = function(e) {
-        var dialogText = 'Dialog text here';
-        e.returnValue = dialogText;
-        return dialogText;
-    };
 })();
 function hexToRgb(hex) {
     // Expand shorthand form (e.g. "03F") to full form (e.g. "0033FF")
@@ -417,6 +414,39 @@ function event5Handler(data) {
             }
         }
     });
+}
+function getDataForEvent5Handler(node) {
+    var result = {};
+    var parentClass = '.cart-order_row';
+    var amountSelector = 'input.shk-count';
+    var dataSelector = '.div--for-analitycs_short';
+    var productNode = node.closest(parentClass);
+    var amount = productNode.querySelector(amountSelector);
+    if (amount === null) return result;
+    if (!amount['value']) return result;
+
+    var primaryData = getProcessedObj(getDataFromProductShortCard(node, parentClass, dataSelector));
+    amount = amount['value'] + '';
+    primaryData['quantity'] = amount;
+    delete primaryData['position'];
+
+    var extra = productNode.querySelector(dataSelector);
+    if ((!extra) || (extra.innerHTML == '')) return primaryData;
+
+    var colorValue = getExtraValueFromData(extra.querySelector('.param_inside_row_15'), '.param_inside_value');
+    if (colorValue) {
+        primaryData['variant'] = colorValue;
+    }
+    var brandValue = getExtraValueFromData(extra.querySelector('.param_inside_row_11'), '.param_inside_value');
+    if (brandValue) {
+        primaryData['brand'] = brandValue;
+    }
+    var categoryValue = getExtraValueFromData(extra.querySelector('.param_inside_row_38'), '.param_inside_value');
+    if (categoryValue) {
+        primaryData['cat'] = categoryValue;
+    }
+
+    return result;
 }
 function event62Handler(data) {
     var step = arguments[1] ? arguments[1] : 2;
