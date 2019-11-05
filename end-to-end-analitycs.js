@@ -164,6 +164,7 @@ var colors_dict = [{"name":"черный","hex":"#000000","id":"18"},{"name":"с
     var moreButtonSelector = '.show-more-params';
     var productSelector = 'section.prod-page--analytics';
     var orderButtonSelector = 'input.cart-pop-tocart_btn';
+    var cartURL = '/ru/cart';
 
     window.addEventListener('load', function(event) {
         if (!(document.querySelectorAll(moreButtonSelector) && document.querySelectorAll(moreButtonSelector).length == 1)) return;
@@ -180,19 +181,22 @@ var colors_dict = [{"name":"черный","hex":"#000000","id":"18"},{"name":"с
             if (!(moreClickCounter % 2)) event3Handler(getProcessedObj(event3Data));
             moreClickCounter++;
         })
-
-
-        // Event #6.1: Redirect to Cart
-        if (!(document.querySelectorAll(orderButtonSelector) && document.querySelectorAll(orderButtonSelector).length == 1)) return;
-        var placeOrderButton = document.querySelector(orderButtonSelector);
-        var amountInput = document.getElementById('oc_count');
-
-        placeOrderButton.addEventListener('click', function(e) {
-            var amount = (amountInput) ? amountInput['value'] + '' : '1';
-            event62Handler(getDataForBuyInOneClick(amount), 'Redirect to Cart');
-        });
     });
     // Product Details view end
+    // Event #6.1: Redirect to Cart
+    window.addEventListener('load', function(event) {
+        var cartRE = new RegExp(cartURL, 'i');
+        if (!cartRE.test(this.location.href)) return;
+        var cartProductItemSelector = '.cart-order_row';
+        var cartProductCollection = document.querySelectorAll(cartProductItemSelector);
+        if (!(cartProductCollection || cartProductCollection.length)) return;
+
+        var cartData = Array.prototype.map.call(cartProductCollection, function (i) {
+            return getDataForEvent5Handler(i);
+        });
+
+        event62Handler(cartData, '1', cartURL);
+    });
 })();
 (function() {
     // Event #5: Remove a Product from Cart
@@ -219,7 +223,7 @@ var colors_dict = [{"name":"черный","hex":"#000000","id":"18"},{"name":"с
         Array.prototype.forEach.call(document.querySelectorAll(productSelector), function(i) { // Create an array with data from each unit of a product
             dataToSend.push(getDataForEvent5Handler(i));
         });
-        event62Handler(dataToSend, '1', orderPathname);
+        event62Handler(dataToSend, '2', orderPathname);
     });
 })();
 function hexToRgb(hex) {
@@ -343,18 +347,25 @@ function event1Handler(array) {
         'ecommerce': {
             'currencyCode': 'UAH',
             'impressions': array
-        }
+        },
+        'event': 'gtm-ee-event',
+        'gtm-ee-event-category': 'Enhanced Ecommerce',
+        'gtm-ee-event-action': 'Product Impressions',
+        'gtm-ee-event-non-interaction': 'True'
     });
 };
 function event2Handler (productObj) {
     if (isEmpty(productObj)) return;
     var data = {
-        'event': 'productClick',
         'ecommerce': {
             'click': {
                 'products': [getProcessedObj(productObj)]
             }
-        }
+        },
+        'event': 'gtm-ee-event',
+        'gtm-ee-event-category': 'Enhanced Ecommerce',
+        'gtm-ee-event-action': 'Product Clicks',
+        'gtm-ee-event-non-interaction': 'False'
     };
     if ('url' in productObj) {
         data['eventCallback'] = function() {
@@ -368,24 +379,32 @@ function event3Handler(productObj) {
     var objToProvide = getProcessedObj(productObj);
     var data = {
         'ecommerce': {
+            'currencyCode': 'UAH',
             'detail': {
                 'actionField': {'list': 'Страница товара'},    // 'detail' actions have an optional list property.
                 'products': [objToProvide]
             }
-        }
+        },
+        'event': 'gtm-ee-event',
+        'gtm-ee-event-category': 'Enhanced Ecommerce',
+        'gtm-ee-event-action': 'Product Details',
+        'gtm-ee-event-non-interaction': 'True'
     };
     dataLayer.push(data);
 }
 function event4Handler(data) {
     if (isEmpty(data)) return;
     var dataToPush = {
-        'event': 'addToCart',
         'ecommerce': {
             'currencyCode': 'UAH',
             'add': {
                 'products': [data]
             }
-        }
+        },
+        'event': 'gtm-ee-event',
+        'gtm-ee-event-category': 'Enhanced Ecommerce',
+        'gtm-ee-event-action': 'Adding a Product to a Shopping Cart',
+        'gtm-ee-event-non-interaction': 'False'
     };
     dataLayer.push(dataToPush);
 }
@@ -424,12 +443,16 @@ function getDataFromCartForEvent4Handler(obj, category_ID, brand_ID, variant_ID)
 function event5Handler(data) {
     if (isEmpty(data)) return;
     dataLayer.push({
-        'event': 'removeFromCart',
         'ecommerce': {
+            'currencyCode': 'UAH',
             'remove': {
                 'products': [data]
             }
-        }
+        },
+        'event': 'gtm-ee-event',
+        'gtm-ee-event-category': 'Enhanced Ecommerce',
+        'gtm-ee-event-action': 'Removing a Product from a Shopping Cart',
+        'gtm-ee-event-non-interaction': 'False'
     });
 }
 function getDataForEvent5Handler(node) {
@@ -466,7 +489,7 @@ function getDataForEvent5Handler(node) {
     return result;
 }
 function event62Handler(data) {
-    var step = arguments[1] ? arguments[1] : 2;
+    var step = arguments[1] ? arguments[1] : 3;
     var destination = arguments[2] ? arguments[2] : '/ru/cart';
     var processedData;
     if (Array.isArray(data)) {
@@ -477,7 +500,6 @@ function event62Handler(data) {
         if (isEmpty(data)) return;
     }
     var dataToPush = {
-        'event': 'checkout',
         'ecommerce': {
             'checkout': {
                 'actionField': {'step': step },
@@ -486,7 +508,11 @@ function event62Handler(data) {
         },
         'eventCallback': function() {
             document.location = window.location.origin + destination;
-        }
+        },
+        'event': 'gtm-ee-event',
+        'gtm-ee-event-category': 'Enhanced Ecommerce',
+        'gtm-ee-event-action': 'Checkout Step ' + step,
+        'gtm-ee-event-non-interaction': 'False',
     };
     dataLayer.push(dataToPush);
 }
@@ -501,7 +527,7 @@ function getDataToConfirmAPurchase(form) {
     Array.prototype.forEach.call(productsCollection, function(i) { // Create an array with data from each unit of a product
         dataToSend.push(getDataForEvent5Handler(i));
     });
-    event62Handler(dataToSend, '2', orderPathname);
+    event62Handler(dataToSend, '3', orderPathname);
 }
 function getDataForBuyInOneClick(amount) {
     var moreButtonSelector = '.show-more-params';
