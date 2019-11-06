@@ -263,7 +263,6 @@ function getDataFromProductShortCard(node, selectorForParent, selectorForDataNod
         data = {};
         console.error(e.message);
     }
-
     if (isEmpty(data)) return data;
     var arrayForIndex = document.querySelectorAll(selectorForParent);
     data['position'] = Array.prototype.indexOf.call(arrayForIndex, parent) + 1;
@@ -351,14 +350,19 @@ function event1Handler(array) {
         'event': 'gtm-ee-event',
         'gtm-ee-event-category': 'Enhanced Ecommerce',
         'gtm-ee-event-action': 'Product Impressions',
-        'gtm-ee-event-non-interaction': 'True'
+        'gtm-ee-event-non-interaction': 'False'
     });
 };
 function event2Handler (productObj) {
     if (isEmpty(productObj)) return;
+    var objTosend = getProcessedObj(productObj);
+    var list = objTosend['list'];
+    delete objTosend['list'];
+
     var data = {
         'ecommerce': {
             'click': {
+                'actionField': {'list': list},
                 'products': [getProcessedObj(productObj)]
             }
         },
@@ -367,33 +371,29 @@ function event2Handler (productObj) {
         'gtm-ee-event-action': 'Product Clicks',
         'gtm-ee-event-non-interaction': 'False'
     };
-    if ('url' in productObj) {
-        data['eventCallback'] = function() {
-            document.location = productObj['url'];
-        };
-    }
     dataLayer.push(data);
 };
 function event3Handler(productObj) {
     if (isEmpty(productObj)) return;
     var objToProvide = getProcessedObj(productObj);
+    delete objToProvide['list'];
     var data = {
         'ecommerce': {
             'currencyCode': 'UAH',
             'detail': {
-                'actionField': {'list': 'Страница товара'},    // 'detail' actions have an optional list property.
                 'products': [objToProvide]
             }
         },
         'event': 'gtm-ee-event',
         'gtm-ee-event-category': 'Enhanced Ecommerce',
         'gtm-ee-event-action': 'Product Details',
-        'gtm-ee-event-non-interaction': 'True'
+        'gtm-ee-event-non-interaction': 'False'
     };
     dataLayer.push(data);
 }
 function event4Handler(data) {
     if (isEmpty(data)) return;
+    delete data['list'];
     var dataToPush = {
         'ecommerce': {
             'currencyCode': 'UAH',
@@ -442,6 +442,7 @@ function getDataFromCartForEvent4Handler(obj, category_ID, brand_ID, variant_ID)
 }
 function event5Handler(data) {
     if (isEmpty(data)) return;
+
     dataLayer.push({
         'ecommerce': {
             'currencyCode': 'UAH',
@@ -466,6 +467,7 @@ function getDataForEvent5Handler(node) {
     if (!amount['value']) return result;
 
     var primaryData = getProcessedObj(getDataFromProductShortCard(node, parentClass, dataSelector));
+    delete primaryData['list'];
     amount = amount['value'] + '';
     primaryData['quantity'] = amount;
     delete primaryData['position'];
@@ -494,9 +496,15 @@ function event62Handler(data) {
     var processedData;
     if (Array.isArray(data)) {
         processedData = data;
+        processedData = Array.prototype.map.call(data, function(q){
+            var objToReturn = q;
+            delete objToReturn['list'];
+            return objToReturn;
+        });
         if (!data.length) return;
     } else {
         processedData = [data];
+        delete processedData[0]['list'];
         if (isEmpty(data)) return;
     }
     var dataToPush = {
@@ -505,9 +513,6 @@ function event62Handler(data) {
                 'actionField': {'step': step },
                 'products': processedData
             }
-        },
-        'eventCallback': function() {
-            document.location = window.location.origin + destination;
         },
         'event': 'gtm-ee-event',
         'gtm-ee-event-category': 'Enhanced Ecommerce',
@@ -519,10 +524,11 @@ function event62Handler(data) {
 // Event #6.3: 'Confirm a Purchase' Button click Handler
 function getDataToConfirmAPurchase(form) {
     var orderPathname = '/ru/oformlenie-zakaza';
-    var productSelector = '.cart-order_row1';
+    var productSelector = '.cart-order_row';
     var dataToSend = [];
     var productsCollection = form.querySelectorAll(productSelector);
 
+    console.log(productsCollection);
     if (!(productsCollection && productsCollection.length)) return;
     Array.prototype.forEach.call(productsCollection, function(i) { // Create an array with data from each unit of a product
         dataToSend.push(getDataForEvent5Handler(i));
@@ -540,6 +546,7 @@ function getDataForBuyInOneClick(amount) {
     delete eventData['url'];
 
     var result = getProcessedObj(eventData);
+    delete result['list'];
     if (amount) {
         result['quantity'] = amount + '';
     }
